@@ -1,768 +1,657 @@
 ---
 name: readme
-description: When the user wants to create or update a README.md file for a project. Also use when the user says "write readme," "create readme," "document this project," "project documentation," or asks for help with README.md. This skill creates absurdly thorough documentation covering local setup, architecture, and deployment.
-context: fork
+description: 当用户需要为项目创建或更新 README.md 文件时使用。也适用于用户说"写 readme"、"创建 readme"、"为项目写文档"或请求帮助撰写 README.md 的场景。该技能生成极度详尽的文档，涵盖本地开发环境搭建、系统架构说明与生产部署指南。
+argument-hint: [项目路径或描述] [可选：目标风格/平台]
+user-invokable: true
 metadata:
-  author: Shpigford
-  version: "1.0"
+  author: Shpigford（中文优化版）
+  version: "2.0"
 ---
 
-# README Generator
+# README 文档生成器
 
-You are an expert technical writer creating comprehensive project documentation. Your goal is to write a README.md that is absurdly thorough—the kind of documentation you wish every project had.
-
-## The Three Purposes of a README
-
-1. **Local Development** - Help any developer get the app running locally in minutes
-2. **Understanding the System** - Explain in great detail how the app works
-3. **Production Deployment** - Cover everything needed to deploy and maintain in production
+你是一位资深技术写作专家，专门为开源项目和团队项目生成高质量的 README 文档。你的目标是撰写一份**极度详尽**的 README.md——那种每个开发者都希望每个项目都有的文档。
 
 ---
 
-## Before Writing
+## README 的三大核心目标
 
-### Step 1: Deep Codebase Exploration
-
-Before writing a single line of documentation, thoroughly explore the codebase. You MUST understand:
-
-**Project Structure**
-- Read the root directory structure
-- Identify the framework/language (Gemfile for Rails, package.json, go.mod, requirements.txt, etc.)
-- Find the main entry point(s)
-- Map out the directory organization
-
-**Configuration Files**
-- .env.example, .env.sample, or documented environment variables
-- Rails config files (config/database.yml, config/application.rb, config/environments/)
-- Credentials setup (config/credentials.yml.enc, config/master.key)
-- Docker files (Dockerfile, docker-compose.yml)
-- CI/CD configs (.github/workflows/, .gitlab-ci.yml, etc.)
-- Deployment configs (config/deploy.yml for Kamal, fly.toml, render.yaml, Procfile, etc.)
-
-**Database**
-- db/schema.rb or db/structure.sql
-- Migrations in db/migrate/
-- Seeds in db/seeds.rb
-- Database type from config/database.yml
-
-**Key Dependencies**
-- Gemfile and Gemfile.lock for Ruby gems
-- package.json for JavaScript dependencies
-- Note any native gem dependencies (pg, nokogiri, etc.)
-
-**Scripts and Commands**
-- bin/ scripts (bin/dev, bin/setup, bin/ci)
-- Procfile or Procfile.dev
-- Rake tasks (lib/tasks/)
-
-### Step 2: Identify Deployment Target
-
-Look for these files to determine deployment platform and tailor instructions:
-
-- `Dockerfile` / `docker-compose.yml` → Docker-based deployment
-- `vercel.json` / `.vercel/` → Vercel
-- `netlify.toml` → Netlify
-- `fly.toml` → Fly.io
-- `railway.json` / `railway.toml` → Railway
-- `render.yaml` → Render
-- `app.yaml` → Google App Engine
-- `Procfile` → Heroku or Heroku-like platforms
-- `.ebextensions/` → AWS Elastic Beanstalk
-- `serverless.yml` → Serverless Framework
-- `terraform/` / `*.tf` → Terraform/Infrastructure as Code
-- `k8s/` / `kubernetes/` → Kubernetes
-
-If no deployment config exists, provide general guidance with Docker as the recommended approach.
-
-### Step 3: Ask Only If Critical
-
-Only ask the user questions if you cannot determine:
-- What the project does (if not obvious from code)
-- Specific deployment credentials or URLs needed
-- Business context that affects documentation
-
-Otherwise, proceed with exploration and writing.
+1. **本地开发** — 帮助任何开发者在几分钟内把项目跑起来
+2. **理解系统** — 深度解释项目的工作原理和架构设计
+3. **生产部署** — 覆盖部署和维护所需的一切内容
 
 ---
 
-## README Structure
+## 开始撰写前的准备工作
 
-Write the README with these sections in order:
+### 第一步：深度探索代码库
 
-### 1. Project Title and Overview
+在写任何一行文档之前，彻底探索代码库。你**必须**了解：
+
+**项目结构**
+- 读取根目录结构
+- 识别框架/语言（Ruby 看 Gemfile，JS/TS 看 package.json，Python 看 requirements.txt / pyproject.toml，Go 看 go.mod 等）
+- 找到主入口文件
+- 梳理目录组织方式
+
+**配置文件**
+- `.env.example`、`.env.sample` 或其他环境变量文档
+- 框架配置文件（如 `config/database.yml`、`vite.config.ts`、`next.config.js`）
+- Docker 相关文件（`Dockerfile`、`docker-compose.yml`）
+- CI/CD 配置（`.github/workflows/`、`.gitlab-ci.yml` 等）
+- 部署配置（`fly.toml`、`render.yaml`、`vercel.json`、`Procfile` 等）
+
+**数据库**
+- 数据库 Schema 文件（`db/schema.rb`、`prisma/schema.prisma`、`*.sql` 等）
+- 迁移文件目录
+- 种子数据文件
+- 数据库类型及连接方式
+
+**核心依赖**
+- `package.json` / `yarn.lock` / `pnpm-lock.yaml`
+- `Gemfile` / `requirements.txt` / `go.mod`
+- 注意关键的原生依赖（如需要 libpq、python-dev 等系统库）
+
+**脚本与命令**
+- `package.json` 中的 `scripts` 字段
+- `Makefile` 或 `bin/` 目录下的脚本
+- `Procfile` 或 `Procfile.dev`
+
+### 第二步：识别部署目标平台
+
+根据以下文件判断部署平台，并定制对应的部署说明：
+
+| 文件 | 平台 |
+|------|------|
+| `Dockerfile` / `docker-compose.yml` | Docker |
+| `vercel.json` / `.vercel/` | Vercel |
+| `netlify.toml` | Netlify |
+| `fly.toml` | Fly.io |
+| `railway.json` / `railway.toml` | Railway |
+| `render.yaml` | Render |
+| `Procfile` | Heroku 或类 Heroku 平台 |
+| `serverless.yml` | Serverless Framework |
+| `k8s/` / `kubernetes/` | Kubernetes |
+| `*.tf` / `terraform/` | Terraform |
+
+若无法识别部署配置，默认提供 Docker 部署方案作为通用选项。
+
+### 第三步：仅在关键时刻提问
+
+仅当以下信息无法从代码中推断时，才向用户提问：
+- 项目的核心功能描述（代码中看不出来时）
+- 特定的部署凭据或生产环境 URL
+- 影响文档内容的业务背景
+
+其他情况一律主动探索并直接撰写。
+
+---
+
+## README 内容结构
+
+按以下顺序撰写各章节：
+
+### 1. 项目标题与概述
 
 ```markdown
-# Project Name
+# 项目名称
 
-Brief description of what the project does and who it's for. 2-3 sentences max.
+简短描述项目是什么、为谁服务、解决什么问题。2-3 句话，言简意赅。
 
-## Key Features
+## ✨ 核心功能
 
-- Feature 1
-- Feature 2
-- Feature 3
+- 功能一
+- 功能二
+- 功能三
 ```
 
-### 2. Tech Stack
+### 2. 技术栈
 
-List all major technologies:
+列出所有主要技术：
 
 ```markdown
-## Tech Stack
+## 🛠 技术栈
 
-- **Language**: Ruby 3.3+
-- **Framework**: Rails 7.2+
-- **Frontend**: Inertia.js with React
-- **Database**: PostgreSQL 16
-- **Background Jobs**: Solid Queue
-- **Caching**: Solid Cache
-- **Styling**: Tailwind CSS
-- **Deployment**: [Detected platform]
+- **语言**：TypeScript 5.x
+- **框架**：Next.js 14（App Router）
+- **数据库**：PostgreSQL 16 + Prisma ORM
+- **样式**：Tailwind CSS
+- **认证**：NextAuth.js
+- **部署**：Vercel
+- **其他**：Redis（缓存）、S3（文件存储）
 ```
 
-### 3. Prerequisites
+### 3. 环境要求
 
-What must be installed before starting:
+运行项目前必须安装的依赖：
 
 ```markdown
-## Prerequisites
+## 📋 环境要求
 
-- Node.js 20 or higher
-- PostgreSQL 15 or higher (or Docker)
-- pnpm (recommended) or npm
-- A Google Cloud project for OAuth (optional for development)
+- Node.js 20 或更高版本
+- PostgreSQL 15 或更高版本（或使用 Docker）
+- pnpm（推荐）或 npm / yarn
+- Redis（可选，用于缓存功能）
 ```
 
-### 4. Getting Started
+### 4. 快速开始
 
-The complete local development guide:
+完整的本地开发环境搭建指南（假设读者是在全新机器上操作）：
 
 ```markdown
-## Getting Started
+## 🚀 快速开始
 
-### 1. Clone the Repository
+### 1. 克隆仓库
 
 \`\`\`bash
 git clone https://github.com/user/repo.git
 cd repo
 \`\`\`
 
-### 2. Install Ruby Dependencies
-
-Ensure you have Ruby 3.3+ installed (via rbenv, asdf, or mise):
+### 2. 安装依赖
 
 \`\`\`bash
-bundle install
+pnpm install
+# 或
+npm install
 \`\`\`
 
-### 3. Install JavaScript Dependencies
+### 3. 配置环境变量
+
+复制环境变量示例文件：
 
 \`\`\`bash
-yarn install
+cp .env.example .env.local
 \`\`\`
 
-### 4. Environment Setup
+按下表填写各变量：
 
-Copy the example environment file:
+| 变量名 | 说明 | 示例 |
+|--------|------|------|
+| `DATABASE_URL` | PostgreSQL 连接字符串 | `postgresql://localhost:5432/myapp_dev` |
+| `NEXTAUTH_SECRET` | NextAuth 加密密钥 | 运行 `openssl rand -base64 32` 生成 |
+| `NEXTAUTH_URL` | 应用访问地址 | `http://localhost:3000` |
+
+### 4. 初始化数据库
+
+使用 Docker 启动 PostgreSQL（可选）：
 
 \`\`\`bash
-cp .env.example .env
+docker run --name postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=myapp_dev \
+  -p 5432:5432 -d postgres:16
 \`\`\`
 
-Configure the following variables:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://localhost/myapp_development` |
-| `REDIS_URL` | Redis connection (if used) | `redis://localhost:6379/0` |
-| `SECRET_KEY_BASE` | Rails secret key | `bin/rails secret` |
-| `RAILS_MASTER_KEY` | For credentials encryption | Check `config/master.key` |
-
-### 5. Database Setup
-
-Start PostgreSQL (if using Docker):
+初始化数据库并运行迁移：
 
 \`\`\`bash
-docker run --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+pnpm db:migrate
+pnpm db:seed   # 可选，导入初始数据
 \`\`\`
 
-Create and set up the database:
+### 5. 启动开发服务器
 
 \`\`\`bash
-bin/rails db:setup
+pnpm dev
 \`\`\`
 
-This runs `db:create`, `db:schema:load`, and `db:seed`.
-
-For existing databases, run migrations:
-
-\`\`\`bash
-bin/rails db:migrate
-\`\`\`
-
-### 6. Start Development Server
-
-Using Foreman/Overmind (recommended, runs Rails + Vite):
-
-\`\`\`bash
-bin/dev
-\`\`\`
-
-Or manually:
-
-\`\`\`bash
-# Terminal 1: Rails server
-bin/rails server
-
-# Terminal 2: Vite dev server (for Inertia/React)
-bin/vite dev
-\`\`\`
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+在浏览器中打开 [http://localhost:3000](http://localhost:3000)。
 ```
 
-Include every step. Assume the reader is setting up on a fresh machine.
+涵盖每一个步骤，不跳过任何环节。
 
-### 5. Architecture Overview
+### 5. 系统架构
 
-This is where you go absurdly deep:
+这是深度展开的地方：
 
 ```markdown
-## Architecture
+## 🏗 系统架构
 
-### Directory Structure
-
-\`\`\`
-├── app/
-│   ├── controllers/         # Rails controllers
-│   │   ├── concerns/        # Shared controller modules
-│   │   └── api/             # API-specific controllers
-│   ├── models/              # ActiveRecord models
-│   │   └── concerns/        # Shared model modules
-│   ├── jobs/                # Background jobs (Solid Queue)
-│   ├── mailers/             # Email templates
-│   ├── views/               # Rails views (minimal with Inertia)
-│   └── frontend/            # Inertia.js React components
-│       ├── components/      # Reusable UI components
-│       ├── layouts/         # Page layouts
-│       ├── pages/           # Inertia page components
-│       └── lib/             # Frontend utilities
-├── config/
-│   ├── routes.rb            # Route definitions
-│   ├── database.yml         # Database configuration
-│   └── initializers/        # App initializers
-├── db/
-│   ├── migrate/             # Database migrations
-│   ├── schema.rb            # Current schema
-│   └── seeds.rb             # Seed data
-├── lib/
-│   └── tasks/               # Custom Rake tasks
-└── public/                  # Static assets
-\`\`\`
-
-### Request Lifecycle
-
-1. Request hits Rails router (`config/routes.rb`)
-2. Middleware stack processes request (authentication, sessions, etc.)
-3. Controller action executes
-4. Models interact with PostgreSQL via ActiveRecord
-5. Inertia renders React component with props
-6. Response sent to browser
-
-### Data Flow
+### 目录结构
 
 \`\`\`
-User Action → React Component → Inertia Visit → Rails Controller → ActiveRecord → PostgreSQL
-                                                        ↓
-                                       React Props ← Inertia Response ←
+├── app/                     # Next.js App Router 页面与路由
+│   ├── (auth)/              # 需要登录的页面组（路由分组）
+│   ├── api/                 # API 路由（服务端接口）
+│   └── layout.tsx           # 根布局组件
+├── components/              # 可复用 UI 组件
+│   ├── ui/                  # 基础组件（Button、Input 等）
+│   └── business/            # 业务组件
+├── lib/                     # 工具函数与第三方集成
+│   ├── db.ts                # Prisma 客户端单例
+│   ├── auth.ts              # 认证配置
+│   └── utils.ts             # 通用工具函数
+├── prisma/                  # 数据库相关
+│   ├── schema.prisma        # 数据库 Schema 定义
+│   ├── migrations/          # 迁移文件
+│   └── seed.ts              # 种子数据
+├── public/                  # 静态资源
+└── types/                   # TypeScript 类型定义
 \`\`\`
 
-### Key Components
+### 请求处理流程
 
-**Authentication**
-- Devise/Rodauth for user authentication
-- Session-based auth with encrypted cookies
-- `authenticate_user!` before_action for protected routes
+1. 用户请求进入 Next.js 路由层
+2. 中间件处理认证校验（`middleware.ts`）
+3. Server Component 在服务端直接查询数据库
+4. 客户端组件通过 API Route 或 Server Action 交互
+5. Prisma ORM 处理数据库操作
+6. 页面渲染并返回给用户
 
-**Inertia.js Integration (`app/frontend/`)**
-- React components receive props from Rails controllers
-- `inertia_render` in controllers passes data to frontend
-- Shared data via `inertia_share` for layout props
-
-**Background Jobs (`app/jobs/`)**
-- Solid Queue for job processing
-- Jobs stored in PostgreSQL (no Redis required)
-- Dashboard at `/jobs` for monitoring
-
-**Database (`app/models/`)**
-- ActiveRecord models with associations
-- Query objects for complex queries
-- Concerns for shared model behavior
-
-### Database Schema
+### 数据流示意
 
 \`\`\`
-users
-├── id (bigint, PK)
-├── email (string, unique, not null)
-├── encrypted_password (string)
-├── name (string)
-├── created_at (datetime)
-└── updated_at (datetime)
+用户操作 → React 组件 → Server Action / API Route → Prisma → PostgreSQL
+                                    ↓
+              更新 UI ← 返回数据 ←
+\`\`\`
 
-posts
-├── id (bigint, PK)
-├── title (string, not null)
-├── content (text)
-├── published (boolean, default: false)
-├── user_id (bigint, FK → users)
-├── created_at (datetime)
-└── updated_at (datetime)
+### 核心模块说明
 
-solid_queue_jobs (background jobs)
-├── id (bigint, PK)
-├── queue_name (string)
-├── class_name (string)
-├── arguments (json)
-├── scheduled_at (datetime)
-└── ...
+**认证模块（`lib/auth.ts`）**
+- 使用 NextAuth.js 实现会话管理
+- 支持邮箱密码登录 / OAuth（GitHub、Google）
+- JWT 存储于 HttpOnly Cookie，防止 XSS
+
+**数据库访问层（`lib/db.ts`）**
+- Prisma Client 单例模式，避免连接池耗尽
+- 开发环境热重载时自动复用实例
+
+**API 路由（`app/api/`）**
+- RESTful 风格设计
+- 统一错误处理与响应格式
+- 输入校验使用 Zod schema
+
+### 数据库核心表结构
+
+\`\`\`
+users（用户表）
+├── id          String   @id @default(cuid())
+├── email       String   @unique
+├── name        String?
+├── createdAt   DateTime @default(now())
+└── updatedAt   DateTime @updatedAt
+
+posts（文章表）
+├── id          String   @id @default(cuid())
+├── title       String
+├── content     String?
+├── published   Boolean  @default(false)
+├── authorId    String   → users.id
+├── createdAt   DateTime @default(now())
+└── updatedAt   DateTime @updatedAt
 \`\`\`
 ```
 
-### 6. Environment Variables
+### 6. 环境变量说明
 
-Complete reference for all env vars:
+所有环境变量的完整参考：
 
 ```markdown
-## Environment Variables
+## ⚙️ 环境变量
 
-### Required
+### 必填项
 
-| Variable | Description | How to Get |
-|----------|-------------|------------|
-| `DATABASE_URL` | PostgreSQL connection string | Your database provider |
-| `SECRET_KEY_BASE` | Rails secret for sessions/cookies | Run `bin/rails secret` |
-| `RAILS_MASTER_KEY` | Decrypts credentials file | Check `config/master.key` (not in git) |
+| 变量名 | 说明 | 获取方式 |
+|--------|------|---------|
+| `DATABASE_URL` | 数据库连接字符串 | 数据库服务商提供 |
+| `NEXTAUTH_SECRET` | 会话加密密钥 | `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | 应用完整 URL | 本地填 `http://localhost:3000` |
 
-### Optional
+### 可选项
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `REDIS_URL` | Redis connection string (for caching/ActionCable) | - |
-| `RAILS_LOG_LEVEL` | Logging verbosity | `debug` (dev), `info` (prod) |
-| `RAILS_MAX_THREADS` | Puma thread count | `5` |
-| `WEB_CONCURRENCY` | Puma worker count | `2` |
-| `SMTP_ADDRESS` | Mail server hostname | - |
-| `SMTP_PORT` | Mail server port | `587` |
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `REDIS_URL` | Redis 连接字符串（用于缓存） | 无（禁用缓存） |
+| `SMTP_HOST` | 邮件服务器地址 | - |
+| `SMTP_PORT` | 邮件服务器端口 | `587` |
+| `S3_BUCKET` | 文件存储桶名称 | - |
 
-### Rails Credentials
+### 各环境配置示例
 
-Sensitive values should be stored in Rails encrypted credentials:
-
-\`\`\`bash
-# Edit credentials (opens in $EDITOR)
-bin/rails credentials:edit
-
-# Or for environment-specific credentials
-RAILS_ENV=production bin/rails credentials:edit
+**开发环境（`.env.local`）**
+\`\`\`env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/myapp_dev
+NEXTAUTH_SECRET=your-dev-secret
+NEXTAUTH_URL=http://localhost:3000
 \`\`\`
 
-Credentials file structure:
-\`\`\`yaml
-secret_key_base: xxx
-stripe:
-  public_key: pk_xxx
-  secret_key: sk_xxx
-google:
-  client_id: xxx
-  client_secret: xxx
-\`\`\`
-
-Access in code: `Rails.application.credentials.stripe[:secret_key]`
-
-### Environment-Specific
-
-**Development**
-\`\`\`
-DATABASE_URL=postgresql://localhost/myapp_development
-REDIS_URL=redis://localhost:6379/0
-\`\`\`
-
-**Production**
-\`\`\`
-DATABASE_URL=<production-connection-string>
-RAILS_ENV=production
-RAILS_SERVE_STATIC_FILES=true
+**生产环境**
+\`\`\`env
+DATABASE_URL=<生产数据库连接字符串>
+NEXTAUTH_SECRET=<高强度随机密钥>
+NEXTAUTH_URL=https://your-domain.com
+NODE_ENV=production
 \`\`\`
 ```
 
-### 7. Available Scripts
+### 7. 常用命令
 
 ```markdown
-## Available Scripts
+## 📦 常用命令
 
-| Command | Description |
-|---------|-------------|
-| `bin/dev` | Start development server (Rails + Vite via Foreman) |
-| `bin/rails server` | Start Rails server only |
-| `bin/vite dev` | Start Vite dev server only |
-| `bin/rails console` | Open Rails console (IRB with app loaded) |
-| `bin/rails db:migrate` | Run pending database migrations |
-| `bin/rails db:rollback` | Rollback last migration |
-| `bin/rails db:seed` | Run database seeds |
-| `bin/rails db:reset` | Drop, create, migrate, and seed database |
-| `bin/rails routes` | List all routes |
-| `bin/rails test` | Run test suite (Minitest) |
-| `bundle exec rspec` | Run test suite (RSpec, if used) |
-| `bin/rails assets:precompile` | Compile assets for production |
-| `bin/rubocop` | Run Ruby linter |
-| `yarn lint` | Run JavaScript/TypeScript linter |
+| 命令 | 说明 |
+|------|------|
+| `pnpm dev` | 启动开发服务器（含热重载） |
+| `pnpm build` | 构建生产版本 |
+| `pnpm start` | 启动生产服务器 |
+| `pnpm lint` | 运行 ESLint 代码检查 |
+| `pnpm typecheck` | 运行 TypeScript 类型检查 |
+| `pnpm test` | 运行测试套件 |
+| `pnpm test:e2e` | 运行端到端测试 |
+| `pnpm db:migrate` | 执行数据库迁移 |
+| `pnpm db:migrate:dev` | 生成并执行开发环境迁移 |
+| `pnpm db:studio` | 打开 Prisma Studio（可视化数据管理） |
+| `pnpm db:seed` | 执行数据库种子脚本 |
+| `pnpm db:reset` | 重置数据库（慎用！） |
 ```
 
-### 8. Testing
+### 8. 测试
 
 ```markdown
-## Testing
+## 🧪 测试
 
-### Running Tests
-
-\`\`\`bash
-# Run all tests (Minitest)
-bin/rails test
-
-# Run all tests (RSpec, if used)
-bundle exec rspec
-
-# Run specific test file
-bin/rails test test/models/user_test.rb
-bundle exec rspec spec/models/user_spec.rb
-
-# Run tests matching a pattern
-bin/rails test -n /creates_user/
-bundle exec rspec -e "creates user"
-
-# Run system tests (browser tests)
-bin/rails test:system
-
-# Run with coverage (SimpleCov)
-COVERAGE=true bin/rails test
-\`\`\`
-
-### Test Structure
-
-\`\`\`
-test/                        # Minitest structure
-├── controllers/             # Controller tests
-├── models/                  # Model unit tests
-├── integration/             # Integration tests
-├── system/                  # System/browser tests
-├── fixtures/                # Test data
-└── test_helper.rb           # Test configuration
-
-spec/                        # RSpec structure (if used)
-├── models/
-├── requests/
-├── system/
-├── factories/               # FactoryBot factories
-├── support/
-└── rails_helper.rb
-\`\`\`
-
-### Writing Tests
-
-**Minitest example:**
-\`\`\`ruby
-require "test_helper"
-
-class UserTest < ActiveSupport::TestCase
-  test "creates user with valid attributes" do
-    user = User.new(email: "test@example.com", name: "Test User")
-    assert user.valid?
-  end
-
-  test "requires email" do
-    user = User.new(name: "Test User")
-    assert_not user.valid?
-    assert_includes user.errors[:email], "can't be blank"
-  end
-end
-\`\`\`
-
-**RSpec example:**
-\`\`\`ruby
-require "rails_helper"
-
-RSpec.describe User, type: :model do
-  describe "validations" do
-    it "is valid with valid attributes" do
-      user = build(:user)
-      expect(user).to be_valid
-    end
-
-    it "requires an email" do
-      user = build(:user, email: nil)
-      expect(user).not_to be_valid
-      expect(user.errors[:email]).to include("can't be blank")
-    end
-  end
-end
-\`\`\`
-
-### Frontend Testing
-
-For Inertia/React components:
+### 运行测试
 
 \`\`\`bash
-yarn test
+# 运行所有单元测试
+pnpm test
+
+# 监听模式（文件变更自动重跑）
+pnpm test --watch
+
+# 查看测试覆盖率报告
+pnpm test --coverage
+
+# 运行端到端测试（需先启动开发服务器）
+pnpm test:e2e
 \`\`\`
 
+### 测试目录结构
+
+\`\`\`
+tests/
+├── unit/                    # 单元测试
+│   ├── lib/                 # 工具函数测试
+│   └── components/          # 组件测试
+├── integration/             # 集成测试（API 路由等）
+├── e2e/                     # 端到端测试（Playwright）
+└── fixtures/                # 测试数据与 Mock
+\`\`\`
+
+### 编写测试示例
+
+**组件测试（Vitest + Testing Library）：**
 \`\`\`typescript
 import { render, screen } from '@testing-library/react'
-import { Dashboard } from './Dashboard'
+import { Button } from '@/components/ui/Button'
 
-describe('Dashboard', () => {
-  it('renders user name', () => {
-    render(<Dashboard user={{ name: 'Josh' }} />)
-    expect(screen.getByText('Josh')).toBeInTheDocument()
+describe('Button', () => {
+  it('渲染按钮文字', () => {
+    render(<Button>提交</Button>)
+    expect(screen.getByRole('button', { name: '提交' })).toBeInTheDocument()
+  })
+
+  it('禁用状态下不可点击', () => {
+    render(<Button disabled>提交</Button>)
+    expect(screen.getByRole('button')).toBeDisabled()
+  })
+})
+\`\`\`
+
+**API 路由测试：**
+\`\`\`typescript
+import { GET } from '@/app/api/users/route'
+import { NextRequest } from 'next/server'
+
+describe('GET /api/users', () => {
+  it('返回用户列表', async () => {
+    const req = new NextRequest('http://localhost/api/users')
+    const res = await GET(req)
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(Array.isArray(data)).toBe(true)
   })
 })
 \`\`\`
 ```
 
-### 9. Deployment
+### 9. 部署指南
 
-Tailor this to detected platform (look for Dockerfile, fly.toml, render.yaml, kamal/, etc.):
+根据检测到的平台定制部署说明：
 
 ```markdown
-## Deployment
+## 🚢 部署
 
-### Kamal (Recommended for Rails)
-
-If using Kamal for deployment:
+### Vercel（推荐，零配置）
 
 \`\`\`bash
-# Setup Kamal (first time)
-kamal setup
+# 安装 Vercel CLI
+npm i -g vercel
 
-# Deploy
-kamal deploy
+# 首次部署
+vercel
 
-# Rollback to previous version
-kamal rollback
-
-# View logs
-kamal app logs
-
-# Run console on production
-kamal app exec --interactive 'bin/rails console'
+# 生产部署
+vercel --prod
 \`\`\`
 
-Configuration lives in `config/deploy.yml`.
+或直接在 [Vercel 控制台](https://vercel.com) 导入 GitHub 仓库，自动配置 CI/CD。
+
+> 注意：在 Vercel 控制台的「Environment Variables」中配置所有必填环境变量。
 
 ### Docker
 
-Build and run:
-
 \`\`\`bash
-# Build image
+# 构建镜像
 docker build -t myapp .
 
-# Run with environment variables
+# 本地运行
 docker run -p 3000:3000 \
   -e DATABASE_URL=postgresql://... \
-  -e SECRET_KEY_BASE=... \
-  -e RAILS_ENV=production \
+  -e NEXTAUTH_SECRET=... \
+  -e NEXTAUTH_URL=https://your-domain.com \
   myapp
 \`\`\`
 
-### Heroku
+使用 docker-compose（推荐本地调试）：
 
 \`\`\`bash
-# Create app
-heroku create myapp
-
-# Add PostgreSQL
-heroku addons:create heroku-postgresql:mini
-
-# Set environment variables
-heroku config:set SECRET_KEY_BASE=$(bin/rails secret)
-heroku config:set RAILS_MASTER_KEY=$(cat config/master.key)
-
-# Deploy
-git push heroku main
-
-# Run migrations
-heroku run bin/rails db:migrate
+docker-compose up -d
 \`\`\`
 
 ### Fly.io
 
 \`\`\`bash
-# Launch (first time)
+# 首次初始化
 fly launch
 
-# Deploy
+# 设置密钥
+fly secrets set NEXTAUTH_SECRET=<your-secret>
+fly secrets set DATABASE_URL=<your-db-url>
+
+# 部署
 fly deploy
 
-# Run migrations
-fly ssh console -C "bin/rails db:migrate"
-
-# Open console
-fly ssh console -C "bin/rails console"
+# 查看日志
+fly logs
 \`\`\`
 
-### Render
-
-If `render.yaml` exists, connect your repo to Render and it will auto-deploy.
-
-Manual setup:
-1. Create new Web Service
-2. Connect GitHub repository
-3. Set build command: `bundle install && bin/rails assets:precompile`
-4. Set start command: `bin/rails server`
-5. Add environment variables in dashboard
-
-### Manual/VPS Deployment
+### Railway
 
 \`\`\`bash
-# On the server:
+# 安装 Railway CLI
+npm i -g @railway/cli
 
-# Pull latest code
+# 登录并部署
+railway login
+railway up
+\`\`\`
+
+### 手动部署（VPS/云服务器）
+
+\`\`\`bash
+# 在服务器上执行：
+
+# 1. 拉取最新代码
 git pull origin main
 
-# Install dependencies
-bundle install --deployment
+# 2. 安装依赖
+pnpm install --frozen-lockfile
 
-# Compile assets
-RAILS_ENV=production bin/rails assets:precompile
+# 3. 构建项目
+pnpm build
 
-# Run migrations
-RAILS_ENV=production bin/rails db:migrate
+# 4. 执行数据库迁移
+pnpm db:migrate
 
-# Restart application server (e.g., Puma via systemd)
+# 5. 重启应用（以 PM2 为例）
+pm2 restart myapp
+# 或使用 systemd
 sudo systemctl restart myapp
 \`\`\`
 ```
 
-### 10. Troubleshooting
+### 10. 常见问题排查
 
 ```markdown
-## Troubleshooting
+## 🔧 常见问题排查
 
-### Database Connection Issues
+### 数据库连接失败
 
-**Error:** `could not connect to server: Connection refused`
+**报错：** `Can't reach database server`
 
-**Solution:**
-1. Verify PostgreSQL is running: `pg_isready` or `docker ps`
-2. Check `DATABASE_URL` format: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`
-3. Ensure database exists: `bin/rails db:create`
+**解决步骤：**
+1. 确认 PostgreSQL 是否在运行：`pg_isready` 或 `docker ps`
+2. 检查 `DATABASE_URL` 格式：`postgresql://USER:PASSWORD@HOST:PORT/DATABASE`
+3. 确认数据库已创建：`pnpm db:migrate`
 
-### Pending Migrations
+### 端口被占用
 
-**Error:** `Migrations are pending`
+**报错：** `Port 3000 is already in use`
 
-**Solution:**
+**解决方案：**
 \`\`\`bash
-bin/rails db:migrate
+# 查找占用进程
+lsof -i :3000      # macOS/Linux
+netstat -ano | findstr :3000  # Windows
+
+# 指定其他端口启动
+pnpm dev -- -p 3001
 \`\`\`
 
-### Asset Compilation Issues
+### 依赖安装失败
 
-**Error:** `The asset "application.css" is not present in the asset pipeline`
+**报错：** 原生模块编译错误
 
-**Solution:**
+**解决方案：**
 \`\`\`bash
-# Clear and recompile assets
-bin/rails assets:clobber
-bin/rails assets:precompile
+# macOS - 安装系统依赖
+brew install node-gyp
+
+# Ubuntu/Debian
+sudo apt-get install build-essential python3
+
+# 清除缓存后重装
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
 \`\`\`
 
-### Bundle Install Failures
+### 环境变量未生效
 
-**Error:** Native extension build failures
+**现象：** 代码中读取到 `undefined`
 
-**Solution:**
-1. Ensure system dependencies are installed:
-   \`\`\`bash
-   # macOS
-   brew install postgresql libpq
+**解决方案：**
+1. 确认文件名正确（Next.js 使用 `.env.local`，不是 `.env`）
+2. 客户端变量必须以 `NEXT_PUBLIC_` 为前缀
+3. 修改 `.env` 文件后需重启开发服务器
 
-   # Ubuntu
-   sudo apt-get install libpq-dev
-   \`\`\`
-2. Try again: `bundle install`
+### 数据库迁移失败
 
-### Credentials Issues
+**报错：** `Migration failed`
 
-**Error:** `ActiveSupport::MessageEncryptor::InvalidMessage`
-
-**Solution:**
-The master key doesn't match the credentials file. Either:
-1. Get the correct `config/master.key` from another team member
-2. Or regenerate credentials: `rm config/credentials.yml.enc && bin/rails credentials:edit`
-
-### Vite/Inertia Issues
-
-**Error:** `Vite Ruby - Build failed`
-
-**Solution:**
+**解决方案：**
 \`\`\`bash
-# Clear Vite cache
-rm -rf node_modules/.vite
+# 查看迁移状态
+pnpm db:migrate status
 
-# Reinstall JS dependencies
-rm -rf node_modules && yarn install
+# 开发环境强制重置（会清空数据，慎用！）
+pnpm db:reset
 \`\`\`
 
-### Solid Queue Issues
+### TypeScript 类型错误
 
-**Error:** Jobs not processing
-
-**Solution:**
-Ensure the queue worker is running:
+**解决方案：**
 \`\`\`bash
-bin/jobs
-# or
-bin/rails solid_queue:start
+# 重新生成 Prisma 类型
+pnpm db:generate
+
+# 清除 Next.js 缓存
+rm -rf .next && pnpm dev
 \`\`\`
 ```
 
-### 11. Contributing (Optional)
+### 11. 贡献指南（可选）
 
-Include if open source or team project.
+如为开源或团队项目，添加此节：
 
-### 12. License (Optional)
+```markdown
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+### 开发流程
+
+1. Fork 本仓库
+2. 创建功能分支：`git checkout -b feat/your-feature`
+3. 提交改动：`git commit -m 'feat: 添加某功能'`（遵循 [Conventional Commits](https://conventionalcommits.org)）
+4. 推送分支：`git push origin feat/your-feature`
+5. 创建 Pull Request
+
+### 代码规范
+
+- 提交前运行 `pnpm lint` 确保无 ESLint 错误
+- 提交前运行 `pnpm typecheck` 确保无 TypeScript 错误
+- 新功能需配套测试用例
+- 遵循已有的代码风格和目录结构
+```
+
+### 12. 开源协议（可选）
 
 ---
 
-## Writing Principles
+## 撰写原则
 
-1. **Be Absurdly Thorough** - When in doubt, include it. More detail is always better.
+1. **极度详尽** — 有疑问时，写进去。细节永远比简略好。
 
-2. **Use Code Blocks Liberally** - Every command should be copy-pasteable.
+2. **命令即文档** — 所有命令须放在代码块中，可一键复制执行。
 
-3. **Show Example Output** - When helpful, show what the user should expect to see.
+3. **展示预期输出** — 在关键步骤后，附上用户应该看到的输出示例。
 
-4. **Explain the Why** - Don't just say "run this command," explain what it does.
+4. **解释"为什么"** — 不只是说"运行这个命令"，还要说明这个命令的作用。
 
-5. **Assume Fresh Machine** - Write as if the reader has never seen this codebase.
+5. **假设全新机器** — 写作时假定读者从未见过这个代码库，在一台全新电脑上操作。
 
-6. **Use Tables for Reference** - Environment variables, scripts, and options work great as tables.
+6. **善用表格** — 环境变量、命令列表、配置选项，优先用表格呈现。
 
-7. **Keep Commands Current** - Use `pnpm` if the project uses it, `npm` if it uses npm, etc.
+7. **命令与项目一致** — 项目用 `pnpm` 就写 `pnpm`，用 `yarn` 就写 `yarn`，不要混用。
 
-8. **Include a Table of Contents** - For READMEs over ~200 lines, add a TOC at the top.
+8. **添加目录导航** — README 超过 200 行时，在顶部添加带链接的目录。
+
+9. **使用 Emoji 标注章节** — 适当使用 Emoji 提升可读性（🚀 📦 🧪 🚢 🔧 等）。
+
+10. **中英文混排规范** — 中英文之间加空格，技术术语保留英文原文。
 
 ---
 
-## Output Format
+## 输出格式要求
 
-Generate a complete README.md file with:
-- Proper markdown formatting
-- Code blocks with language hints (```bash, ```typescript, etc.)
-- Tables where appropriate
-- Clear section hierarchy
-- Linked table of contents for long documents
+生成完整的 README.md 文件，要求：
+- 正确的 Markdown 语法
+- 代码块注明语言（` ```bash `、` ```typescript ` 等）
+- 适当使用表格
+- 清晰的章节层级
+- 超长文档在顶部附带目录（使用锚点链接）
 
-Write the README directly to `README.md` in the project root.
+将 README 文件直接写入项目根目录的 `README.md`。
